@@ -38,6 +38,9 @@ def main():
     )
     try:
       server.start()
+    except servers.FatalError as e:
+      _LOG.exception(e)
+      sys.exit(1)
     except Exception as e:
       _LOG.exception('Server exiting with error: %s', e)
     time.sleep(10)

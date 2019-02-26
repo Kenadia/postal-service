@@ -16,6 +16,10 @@ class ImapError(Exception):
   """Error in IMAP request."""
 
 
+class FatalError(Exception):
+  """An error that can't be recovered from."""
+
+
 class ImapClient(object):
 
   def __init__(self, username, password):
@@ -48,9 +52,9 @@ class ImapClient(object):
       self.login(self._username, self._password)
     except Exception as e:
       if str(e).find('Lookup failed') != -1:
-        raise ImapError('Invalid username: %s@gmail.com' % username)
+        raise FatalError('Invalid username: %s@gmail.com' % self._username)
       if str(e).find('Invalid credentials') != -1:
-        raise ImapError('Invalid password for account: %s@gmail.com' % username)
+        raise FatalError('Invalid password for account: %s@gmail.com' % self._username)
       raise
     return self
 

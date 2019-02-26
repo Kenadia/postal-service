@@ -3,7 +3,7 @@ import logging
 _LOG = logging.getLogger('postal_service')
 
 
-def init_logging()
+def init_logging():
   formatter = logging.Formatter(
       '%(asctime)s - %(name)s - %(levelname)s - %(message)s')
   file_handler = logging.FileHandler('postal_service.log')
