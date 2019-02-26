@@ -16,12 +16,15 @@
 import collections
 import logging
 import re
+import tempfile
 
 _LOG = logging.getLogger('postal_service')
+
+ATTACHMENTS_DIR = 'attachments'
 EMAIL_REGEX = '(?:(.+) )?<?([-\w\.]+@[\w\.]+)>?'
 
 Message = collections.namedtuple(
-    'Message', ['sender_email', 'in_reply_to'])
+    'Message', ['subject', 'body', 'sender_email', 'in_reply_to', 'attachments'])
 Reply = collections.namedtuple(
     'Reply', ['body', 'name'])
 
@@ -31,6 +34,7 @@ class Dispatch(object):
 
   def __init__(self, agents):
     self._agents = agents
+    self.tempfiles = []
 
   def _get_sender_email(self, raw_message):
     match = re.match(EMAIL_REGEX, raw_message['From'])
@@ -51,10 +55,33 @@ class Dispatch(object):
     _LOG.warn('Inbox: Got a message without any plain text.')
     return ''
 
+  def _get_attachments(self, raw_message):
+    for part in raw_message.walk():
+      if part.get_content_maintype() == 'multipart':
+        continue
+      if part.get('Content-Disposition') is None:
+        continue
+
+      filename = part.get_filename()
+      data = part.get_payload(decode=True)
+
+      if not data:
+        continue
+
+      f = tempfile.NamedTemporaryFile()
+      f.write(data)
+      yield f.name
+
+      # Keep the file open and available until the server shuts down.
+      self.tempfiles.append(f)
+
   def _get_message(self, raw_message):
     return Message(
+        raw_message['Subject'],
+        self._get_message_body(raw_message),
         self._get_sender_email(raw_message),
         raw_message['In-Reply-To'],
+        list(self._get_attachments(raw_message)),
     )
 
   def _get_agent(self, message):
@@ -98,7 +125,7 @@ class NoReplyAgent(BaseAgent):
 
 class LoggingAgent(NoReplyAgent):
 
-  def responsd(self, message):
+  def respond(self, message):
     print message
 
 
