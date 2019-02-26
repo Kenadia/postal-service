@@ -150,6 +150,7 @@ class Server(object):
 
       found_anything = False
 
+      # Try to read new messages from the inbox.
       try:
         new_messages = self.inbox.get_new_messages()
       except Exception as e:

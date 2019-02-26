@@ -22,6 +22,9 @@ EMAIL_REGEX = '(?:(.+) )?<?([-\w\.]+@[\w\.]+)>?'
 
 MessageInfo = collections.namedtuple(
     'MessageInfo', ['sender_email', 'in_reply_to'])
+Response = collections.namedtuple(
+    'Response', ['body', 'name'])
+
 
 class Dispatch(object):
   """Dispatches the first agent that accepts the message, or None."""
@@ -49,13 +52,20 @@ class Dispatch(object):
   def get_reply(self, message):
     message_info = self._get_message_info(message)
     agent = self._get_agent(message_info)
-    if agent:
-      return agent.respond(message_info), agent.display_name
-    return None, None
+
+    if not agent:
+      return
+
+    reply = agent.respond(message_info)
+
+    if reply is None:
+      return
+
+    return Response(reply, agent.display_name)
 
 
-class Agent(object):
-  display_name = 'LPT'
+class BaseAgent(object):
+  display_name = 'Postal Service'
 
   def accepts(self, message_info):
     raise NotImplementedError
@@ -64,7 +74,16 @@ class Agent(object):
     raise NotImplementedError
 
 
-class EchoAgent(Agent):
+class NoReplyAgnet(BaseAgent):
+
+  def accepts(self, _message_info):
+    return True
+
+  def respond(self):
+    pass
+
+
+class EchoAgent(BaseAgent):
 
   def __init__(self, known_users):
     self.known_users = known_users
@@ -76,7 +95,7 @@ class EchoAgent(Agent):
     return 'Echo: ' + body
 
 
-class SimpleReplyAgent(Agent):
+class SimpleReplyAgent(BaseAgent):
 
   def __init__(self, reply):
     self.reply = reply
@@ -88,7 +107,7 @@ class SimpleReplyAgent(Agent):
     return self.reply
 
 
-class PersonalizedAgent(Agent):
+class PersonalizedAgent(BaseAgent):
 
   def __init__(self, users):
     self.users = users
