@@ -70,6 +70,7 @@ class Dispatch(object):
 
       f = tempfile.NamedTemporaryFile()
       f.write(data)
+      f.flush()
       yield f.name
 
       # Keep the file open and available until the server shuts down.
