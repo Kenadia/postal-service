@@ -74,13 +74,19 @@ class BaseAgent(object):
     raise NotImplementedError
 
 
-class NoReplyAgnet(BaseAgent):
+class NoReplyAgent(BaseAgent):
 
   def accepts(self, _message_info):
     return True
 
   def respond(self):
     pass
+
+
+class LoggingAgent(NoReplyAgent):
+
+  def response(self, message):
+    print message
 
 
 class EchoAgent(BaseAgent):
