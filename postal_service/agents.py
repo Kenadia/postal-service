@@ -20,8 +20,8 @@ import re
 _LOG = logging.getLogger('postal_service')
 EMAIL_REGEX = '(?:(.+) )?<?([-\w\.]+@[\w\.]+)>?'
 
-MessageInfo = collections.namedtuple(
-    'MessageInfo', ['sender_email', 'in_reply_to'])
+Message = collections.namedtuple(
+    'Message', ['sender_email', 'in_reply_to'])
 Reply = collections.namedtuple(
     'Reply', ['body', 'name'])
 
@@ -32,41 +32,44 @@ class Dispatch(object):
   def __init__(self, agents):
     self._agents = agents
 
-  def _get_sender_email(self, message):
-    match = re.match(EMAIL_REGEX, message['From'])
+  def _get_sender_email(self, raw_message):
+    match = re.match(EMAIL_REGEX, raw_message['From'])
     if match:
       return match.groups()[1]
-    _LOG.warn('Dispatch: Failed to parse sender field `%s`', message['From'])
+    _LOG.warn(
+        'Dispatch: Failed to parse sender field `%s`',
+        raw_message['From']
+    )
 
-  def _get_message_body(self, message):
-    if message.get_content_type() == 'text/plain':
-      return message.get_payload()
-    if message.get_content_maintype() == 'multipart':
-      for part in message.get_payload():
+  def _get_message_body(self, raw_message):
+    if raw_message.get_content_type() == 'text/plain':
+      return raw_message.get_payload()
+    if raw_message.get_content_maintype() == 'multipart':
+      for part in raw_message.get_payload():
         if part.get_content_type() == 'text/plain':
           return part.get_payload()
     _LOG.warn('Inbox: Got a message without any plain text.')
     return ''
 
-  def _get_message_info(self, message):
-    return MessageInfo(
-        self._get_sender_email(message),
-        message['In-Reply-To'],
+  def _get_message(self, raw_message):
+    return Message(
+        self._get_sender_email(raw_message),
+        raw_message['In-Reply-To'],
     )
 
-  def _get_agent(self, message_info):
+  def _get_agent(self, message):
     for agent in self._agents:
-      if agent.accepts(message_info):
+      if agent.accepts(message):
         return agent
 
-  def get_reply(self, message):
-    message_info = self._get_message_info(message)
-    agent = self._get_agent(message_info)
+  def get_reply(self, raw_message):
+    message = self._get_message(raw_message)
+    agent = self._get_agent(message)
 
     if not agent:
       return
 
-    reply = agent.respond(message_info)
+    reply = agent.respond(message)
 
     if reply is None:
       return
@@ -77,16 +80,16 @@ class Dispatch(object):
 class BaseAgent(object):
   display_name = 'Postal Service'
 
-  def accepts(self, message_info):
+  def accepts(self, message):
     raise NotImplementedError
 
-  def respond(self, message_info):
+  def respond(self, message):
     raise NotImplementedError
 
 
 class NoReplyAgent(BaseAgent):
 
-  def accepts(self, _message_info):
+  def accepts(self, _message):
     return True
 
   def respond(self, _message):
@@ -104,10 +107,10 @@ class EchoAgent(BaseAgent):
   def __init__(self, known_users):
     self.known_users = known_users
 
-  def accepts(self, message_info):
-    return message_info.sender_email in known_users
+  def accepts(self, message):
+    return message.sender_email in known_users
 
-  def respond(self, body, message_info):
+  def respond(self, body, message):
     return 'Echo: ' + body
 
 
@@ -116,10 +119,10 @@ class SimpleReplyAgent(BaseAgent):
   def __init__(self, reply):
     self.reply = reply
 
-  def accepts(self, message_info):
+  def accepts(self, message):
     return True
 
-  def respond(self, message_info):
+  def respond(self, message):
     return self.reply
 
 
@@ -128,8 +131,8 @@ class PersonalizedAgent(BaseAgent):
   def __init__(self, users):
     self.users = users
 
-  def accepts(self, message_info):
-    return message_info.sender_email in self.users
+  def accepts(self, message):
+    return message.sender_email in self.users
 
-  def respond(self, message_info):
-    return 'Hello, %s.' % self.users[message_info.sender_email]
+  def respond(self, message):
+    return 'Hello, %s.' % self.users[message.sender_email]
