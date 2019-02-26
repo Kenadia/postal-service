@@ -166,14 +166,14 @@ class Server(object):
         found_anything = True
 
         _LOG.info('Server: Received new message: %s', message['Subject'])
-        reply, replier_name = self.dispatch.get_reply(message)
+        reply = self.dispatch.get_reply(message)
         if reply is None:
           _LOG.info('Server: Dispatch gave no reply.')
           continue
 
         _LOG.info('Server: Sending reply...')
         try:
-          self.sender.reply(message, reply, replier_name)
+          self.sender.reply(message, reply.body, reply.name)
         except Exception as e:
           _LOG.exception('Server: Error trying to reply: %s', e)
         else:

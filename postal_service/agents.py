@@ -22,8 +22,8 @@ EMAIL_REGEX = '(?:(.+) )?<?([-\w\.]+@[\w\.]+)>?'
 
 MessageInfo = collections.namedtuple(
     'MessageInfo', ['sender_email', 'in_reply_to'])
-Response = collections.namedtuple(
-    'Response', ['body', 'name'])
+Reply = collections.namedtuple(
+    'Reply', ['body', 'name'])
 
 
 class Dispatch(object):
@@ -61,7 +61,7 @@ class Dispatch(object):
     if reply is None:
       return
 
-    return Response(reply, agent.display_name)
+    return Reply(reply, agent.display_name)
 
 
 class BaseAgent(object):
@@ -79,13 +79,13 @@ class NoReplyAgent(BaseAgent):
   def accepts(self, _message_info):
     return True
 
-  def respond(self):
+  def respond(self, _message):
     pass
 
 
 class LoggingAgent(NoReplyAgent):
 
-  def response(self, message):
+  def responsd(self, message):
     print message
 
 
