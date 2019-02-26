@@ -79,16 +79,6 @@ class Inbox(object):
     raw_email = self._client.uid('fetch', uid, '(RFC822)')[0][1]
     return email.message_from_string(raw_email)
 
-  def _get_message_body(self, message):
-    if message.get_content_type() == 'text/plain':
-      return message.get_payload()
-    if message.get_content_maintype() == 'multipart':
-      for part in message.get_payload():
-        if part.get_content_type() == 'text/plain':
-          return part.get_payload()
-    _LOG.warn('Inbox: Got a message without any plain text.')
-    return ''
-
   def initialize(self):
     with self._client:
       self._client.select('inbox')
@@ -105,8 +95,7 @@ class Inbox(object):
       self._seen_uids.update(new_uids)
 
       for uid in new_uids:
-        message = self._get_message_for_uid(uid)
-        yield message, self._get_message_body(message)
+        yield self._get_message_for_uid(uid)
 
 
 class Sender(object):
@@ -162,7 +151,7 @@ class Server(object):
         time.sleep(self.refresh_s)
         continue
 
-      for message, body in new_messages:
+      for message in new_messages:
         found_anything = True
 
         _LOG.info('Server: Received new message: %s', message['Subject'])

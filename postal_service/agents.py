@@ -38,6 +38,16 @@ class Dispatch(object):
       return match.groups()[1]
     _LOG.warn('Dispatch: Failed to parse sender field `%s`', message['From'])
 
+  def _get_message_body(self, message):
+    if message.get_content_type() == 'text/plain':
+      return message.get_payload()
+    if message.get_content_maintype() == 'multipart':
+      for part in message.get_payload():
+        if part.get_content_type() == 'text/plain':
+          return part.get_payload()
+    _LOG.warn('Inbox: Got a message without any plain text.')
+    return ''
+
   def _get_message_info(self, message):
     return MessageInfo(
         self._get_sender_email(message),
