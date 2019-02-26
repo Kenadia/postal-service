@@ -1,3 +1,4 @@
+import logging
 import sys
 
 # Never create .pyc files.
@@ -6,29 +7,15 @@ sys.dont_write_bytecode = True
 import accounts
 import agents
 import config
-import logging
+import logs
 import servers
 
 # TODO: Log like pros.
 _LOG = logging.getLogger('postal_service')
 
 
-def init_logging()
-  formatter = logging.Formatter(
-      '%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-  file_handler = logging.FileHandler('postal_service.log')
-  file_handler.setLevel(logging.DEBUG)
-  file_handler.setFormatter(formatter)
-  console_handler = logging.StreamHandler()
-  console_handler.setLevel(logging.DEBUG)
-  console_handler.setFormatter(formatter)
-  _LOG.setLevel(logging.DEBUG)
-  _LOG.addHandler(file_handler)
-  _LOG.addHandler(console_handler)
-
-
 def main():
-  init_logging()
+  logs.init_logging()
 
   # TODO: Support multiple agents with ability to initiate threads.
   dispatch = agents.Dispatch([
