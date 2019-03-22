@@ -13,6 +13,8 @@
 # TODO: Implement framework for proxy agents.
 # TODO: Implement framework for conversation agents.
 
+from __future__ import print_function
+
 import collections
 import logging
 import re
@@ -127,7 +129,7 @@ class NoReplyAgent(BaseAgent):
 class LoggingAgent(NoReplyAgent):
 
   def respond(self, message):
-    print message
+    print(message)
 
 
 class EchoAgent(BaseAgent):
