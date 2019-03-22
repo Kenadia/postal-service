@@ -13,6 +13,9 @@ setuptools.setup(
     long_description_content_type="text/markdown",
     url="https://github.com/Kenadia/postal-service",
     packages=setuptools.find_packages(),
+    install_requires=[
+        'Envelopes==0.4',
+    ],
     classifiers=[
     ],
 )
