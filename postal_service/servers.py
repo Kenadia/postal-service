@@ -114,13 +114,13 @@ class Sender(object):
     headers = {
         'In-Reply-To': message['Message-ID'],
     }
-    self.send(subject, reply_body, agent_name, to_email, to_name, headers)
+    self.send(subject, reply_body, agent_name, (to_email, to_name), headers)
 
-  def send(self, subject, body, sender_name, to_email, to_name, headers=None):
+  def send(self, subject, body, sender_name, to_addr_or_tuple, headers=None):
     headers = headers or {}
     envelope = envelopes.Envelope(
         from_addr=(self.email, sender_name),
-        to_addr=(to_email, to_name),
+        to_addr=to_addr_or_tuple,
         subject=subject,
         text_body=body,
         headers=headers,
