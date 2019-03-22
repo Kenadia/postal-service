@@ -114,12 +114,15 @@ class Sender(object):
     headers = {
         'In-Reply-To': message['Message-ID'],
     }
+    self.send(subject, reply_body, agent_name, to_email, to_name, headers)
 
+  def send(self, subject, body, sender_name, to_email, to_name, headers=None):
+    headers = headers or {}
     envelope = envelopes.Envelope(
-        from_addr=(self.email, agent_name),
+        from_addr=(self.email, sender_name),
         to_addr=(to_email, to_name),
         subject=subject,
-        text_body=reply_body,
+        text_body=body,
         headers=headers,
     )
     self.gmail.send(envelope)
