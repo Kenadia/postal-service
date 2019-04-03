@@ -6,8 +6,6 @@ import re
 import sys
 import time
 
-import config
-
 _LOG = logging.getLogger('postal_service')
 EMAIL_REGEX = '(?:(.+) )?<?([-\w\.]+@[\w\.]+)>?'
 
