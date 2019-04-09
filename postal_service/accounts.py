@@ -11,4 +11,6 @@ class Account(object):
 
   @classmethod
   def from_config(cls, config):
-    return cls(config.username, config.password)
+    if not isinstance(config, dict):
+      config = config.__dict__
+    return cls(config['username'], config['password'])
