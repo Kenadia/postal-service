@@ -111,10 +111,10 @@ class BaseAgent(object):
   display_name = 'Postal Service'
 
   def accepts(self, message):
-    raise NotImplementedError
+    raise NotImplementedError('accepts() was not implemented')
 
   def respond(self, message):
-    raise NotImplementedError
+    raise NotImplementedError('respond() was not implemented')
 
 
 class NoReplyAgent(BaseAgent):
